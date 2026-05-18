@@ -24,12 +24,15 @@ export default function FilterBar({ enabled, onChange, graph }: Props) {
 
   return (
     <div className="mb-6">
-      <h2 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--fg-4)' }}>노드 유형</h2>
-      <ul className="space-y-1.5">
+      <h2
+        className="text-[11px] font-semibold uppercase tracking-wider mb-3"
+        style={{ color: 'var(--fg-5)' }}
+      >
+        노드 유형
+      </h2>
+      <ul className="space-y-0.5">
         {NODE_TYPES.map(t => {
           const on = enabled.has(t);
-          // ON: 노드 자체 색 (의미·통찰·절차·사건·주제 = fg-2 흰색, 주장 = red)
-          // OFF: fg-5 (disabled gray)
           const dotColor = on ? NODE_COLOR[t] : 'var(--fg-5)';
           const textColor = on ? 'var(--fg-2)' : 'var(--fg-5)';
           const subColor = on ? 'var(--fg-4)' : 'var(--fg-5)';
@@ -37,17 +40,20 @@ export default function FilterBar({ enabled, onChange, graph }: Props) {
             <li key={t}>
               <button
                 onClick={() => toggle(t)}
-                className="w-full flex items-center gap-3 px-2 py-1.5 rounded text-sm transition-colors hover:bg-neutral-800/50"
+                className="w-full flex items-center gap-3 px-2 py-1.5 rounded-md text-[13px] transition-colors"
+                style={{ }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
                 <span
-                  className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 transition-colors"
+                  className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
                   style={{ backgroundColor: dotColor }}
                 />
                 <span style={{ color: textColor }}>{t}</span>
-                <span className="text-xs lowercase" style={{ color: subColor }}>
+                <span className="text-[12px] lowercase" style={{ color: subColor }}>
                   {NODE_TYPE_EN[t]}
                 </span>
-                <span className="ml-auto text-xs tabular-nums" style={{ color: subColor }}>
+                <span className="ml-auto text-[12px] tabular-nums" style={{ color: subColor }}>
                   {counts[t]}
                 </span>
               </button>
