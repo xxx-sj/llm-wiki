@@ -58,10 +58,13 @@ export default function ForceGraphCanvas({ nodes, edges, selectedId, onNodeClick
     return s;
   }, [hoveredId, adjacency]);
 
-  const data = {
+  // graphData는 nodes/edges가 실제 바뀔 때만 새 reference 발급.
+  // hover state 변경 시 새 객체를 만들면 react-force-graph가 시뮬레이션을 재시작해서 노드가 "튐".
+  // react-force-graph는 노드 객체에 직접 x/y/vx/vy를 mutate하므로 같은 객체 reference 유지가 필수.
+  const data = useMemo(() => ({
     nodes: nodes.map(n => ({ ...n, val: 1 + n.in_degree })),
     links: edges.map(e => ({ ...e }))
-  };
+  }), [nodes, edges]);
 
   return (
     <div ref={containerRef} className="absolute inset-0">
