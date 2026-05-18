@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
 import type { GraphNode, GraphEdge } from '@/lib/schema';
-import { NODE_COLOR, EDGE_COLOR, COLORS } from '@/lib/color-map';
+import { NODE_COLOR, EDGE_COLOR, EDGE_DASH, COLORS } from '@/lib/color-map';
 
 const ForceGraph2D = dynamic(
   () => import('react-force-graph-2d'),
@@ -47,10 +47,11 @@ export default function ForceGraphCanvas({ nodes, edges, selectedId, onNodeClick
         graphData={data}
         nodeRelSize={6}
         nodeLabel={() => ''}
-        linkColor={(l: any) => EDGE_COLOR[l.type as keyof typeof EDGE_COLOR] + '99'}
+        linkColor={(l: any) => EDGE_COLOR[l.type as keyof typeof EDGE_COLOR]}
+        linkLineDash={(l: any) => EDGE_DASH[l.type as keyof typeof EDGE_DASH]}
         linkDirectionalArrowLength={3}
         linkDirectionalArrowRelPos={1}
-        linkWidth={0.8}
+        linkWidth={1}
         onNodeClick={(n: any) => onNodeClick(n.id)}
         cooldownTicks={120}
         nodeCanvasObject={(node: any, ctx, globalScale) => {
@@ -58,7 +59,6 @@ export default function ForceGraphCanvas({ nodes, edges, selectedId, onNodeClick
           const radius = (4 + node.in_degree * 1.5);
           const color = NODE_COLOR[node.node_type as keyof typeof NODE_COLOR];
 
-          // 노드 원
           ctx.beginPath();
           ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
           ctx.fillStyle = color;
@@ -70,7 +70,7 @@ export default function ForceGraphCanvas({ nodes, edges, selectedId, onNodeClick
             ctx.stroke();
           }
 
-          // 노드 라벨 (확대 시점에 따라)
+          // 노드 라벨
           if (globalScale > 0.7) {
             const label = node.title as string;
             const fontSize = Math.max(10, 12 / globalScale);

@@ -1,28 +1,44 @@
 import type { NodeType, EdgeType } from './schema';
 
-// 다크 배경(#0a0a0a) 위에서 잘 보이는 muted 톤
+// 노드: 기본 흰색, 주장(thesis)만 빨강 강조 — 레퍼런스 컨벤션
 export const NODE_COLOR: Record<NodeType, string> = {
-  '의미':   '#60a5fa', // sky-400
-  '통찰':   '#fbbf24', // amber-400
-  '절차':   '#34d399', // emerald-400
-  '사건':   '#fb923c', // orange-400
-  '주장':   '#f87171', // red-400 (강조)
-  '주제':   '#c084fc'  // purple-400
+  '의미':   '#e5e5e5',
+  '통찰':   '#e5e5e5',
+  '절차':   '#e5e5e5',
+  '사건':   '#e5e5e5',
+  '주장':   '#f87171', // 강조 (thesis)
+  '주제':   '#e5e5e5'
 };
 
+export const NODE_COLOR_DISABLED = '#3f3f46'; // zinc-700, 어둡게
+
+// 엣지: 모두 회색 톤, 반박만 빨강 강조
 export const EDGE_COLOR: Record<EdgeType, string> = {
-  '지지':     '#4ade80',  // green-400
-  '반박':     '#f87171',  // red-400
-  '확장':     '#60a5fa',  // sky-400
-  '구체화':   '#22d3ee',  // cyan-400
-  '정련':     '#a78bfa',  // violet-400
-  '유사':     '#9ca3af',  // gray-400 (점선처럼 약하게)
-  '촉발':     '#fbbf24',  // amber-400
-  '주제태그': '#c084fc',  // purple-400
-  '전제':     '#38bdf8'   // sky-400 (조금 다른 톤)
+  '지지':     '#525252',
+  '반박':     '#f87171', // 강조 (반박)
+  '확장':     '#525252',
+  '구체화':   '#525252',
+  '정련':     '#525252',
+  '유사':     '#525252',
+  '촉발':     '#525252',
+  '주제태그': '#525252',
+  '전제':     '#525252'
 };
 
-// 사이드바 점 표시용 (NODE_COLOR와 동일)
+// 점선 패턴 (유사·주제태그 — 약한/메타 관계)
+export const EDGE_DASH: Record<EdgeType, number[] | null> = {
+  '지지':     null,
+  '반박':     null,
+  '확장':     null,
+  '구체화':   null,
+  '정련':     null,
+  '유사':     [3, 3],
+  '촉발':     null,
+  '주제태그': [3, 3],
+  '전제':     null
+};
+
+// 사이드바 dot 색 (NODE_COLOR와 동일)
 export const NODE_DOT_COLOR = NODE_COLOR;
 
 // 배경 / UI 색
@@ -33,5 +49,6 @@ export const COLORS = {
   textPrimary: '#e5e5e5',
   textSecondary: '#a3a3a3',
   textMuted: '#737373',
+  textDisabled: '#52525b',
   accent: '#f87171'
 };

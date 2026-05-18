@@ -2,7 +2,7 @@
 
 import { NODE_TYPES, NODE_TYPE_EN } from '@/lib/schema';
 import type { NodeType, GraphData } from '@/lib/schema';
-import { NODE_COLOR } from '@/lib/color-map';
+import { NODE_COLOR, NODE_COLOR_DISABLED } from '@/lib/color-map';
 
 interface Props {
   enabled: Set<NodeType>;
@@ -28,21 +28,24 @@ export default function FilterBar({ enabled, onChange, graph }: Props) {
       <ul className="space-y-1.5">
         {NODE_TYPES.map(t => {
           const on = enabled.has(t);
+          const dotColor = on ? NODE_COLOR[t] : NODE_COLOR_DISABLED;
           return (
             <li key={t}>
               <button
                 onClick={() => toggle(t)}
-                className={`w-full flex items-center gap-3 px-2 py-1.5 rounded text-sm transition-colors ${
-                  on ? 'hover:bg-neutral-800' : 'opacity-40 hover:opacity-70'
-                }`}
+                className="w-full flex items-center gap-3 px-2 py-1.5 rounded text-sm transition-colors hover:bg-neutral-800/50"
               >
                 <span
-                  className="inline-block w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: NODE_COLOR[t] }}
+                  className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 transition-colors"
+                  style={{ backgroundColor: dotColor }}
                 />
-                <span className="text-neutral-200">{t}</span>
-                <span className="text-xs text-neutral-500 lowercase">{NODE_TYPE_EN[t]}</span>
-                <span className="ml-auto text-xs text-neutral-500 tabular-nums">{counts[t]}</span>
+                <span className={on ? 'text-neutral-200' : 'text-neutral-600'}>{t}</span>
+                <span className={`text-xs lowercase ${on ? 'text-neutral-500' : 'text-neutral-700'}`}>
+                  {NODE_TYPE_EN[t]}
+                </span>
+                <span className={`ml-auto text-xs tabular-nums ${on ? 'text-neutral-500' : 'text-neutral-700'}`}>
+                  {counts[t]}
+                </span>
               </button>
             </li>
           );
