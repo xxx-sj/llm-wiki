@@ -1,0 +1,27 @@
+# Node
+node_modules/
+npm-debug.log*
+.npm
+
+# Next.js
+.next/
+out/
+
+# Build artifacts (viewer 빌드 산출물은 commit 안 함)
+viewer/public/graph.json
+
+# Env
+.env
+.env.local
+.env*.local
+
+# IDE/OS
+.DS_Store
+.vscode/
+.idea/
+
+# Jest/Vitest
+coverage/
+
+# 임시 sanity check files (work scope 빌드 검증용)
+wiki/work/**/*-temp-sanity.md
