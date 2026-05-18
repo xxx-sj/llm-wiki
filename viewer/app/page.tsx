@@ -1,8 +1,14 @@
-export default function Home() {
-  return (
-    <main className="p-8">
-      <h1 className="text-2xl font-bold">LLM Wiki</h1>
-      <p>그래프는 Chunk 4에서 구현됩니다.</p>
-    </main>
-  );
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import type { GraphData } from '@/lib/schema';
+import ClientGraphPage from './ClientGraphPage';
+
+async function loadGraph(): Promise<GraphData> {
+  const p = path.join(process.cwd(), 'public', 'graph.json');
+  return JSON.parse(await fs.readFile(p, 'utf8'));
+}
+
+export default async function Home() {
+  const graph = await loadGraph();
+  return <ClientGraphPage graph={graph} />;
 }
