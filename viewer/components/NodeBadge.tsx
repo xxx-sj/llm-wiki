@@ -3,10 +3,11 @@ import type { NodeType } from '@/lib/schema';
 
 export default function NodeBadge({ type }: { type: NodeType }) {
   return (
-    <span
-      className="inline-block px-2 py-0.5 rounded text-xs text-white"
-      style={{ backgroundColor: NODE_COLOR[type] }}
-    >
+    <span className="inline-flex items-center gap-1.5 text-xs text-neutral-300">
+      <span
+        className="inline-block w-2 h-2 rounded-full"
+        style={{ backgroundColor: NODE_COLOR[type] }}
+      />
       {type}
     </span>
   );

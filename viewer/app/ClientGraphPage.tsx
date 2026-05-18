@@ -23,28 +23,37 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
     : undefined;
 
   return (
-    <div className="flex h-screen">
-      <aside className="w-64 border-r p-4 overflow-y-auto bg-gray-50">
-        <h1 className="font-bold mb-4">LLM Wiki</h1>
-        <FilterBar enabled={enabledTypes} onChange={setEnabledTypes} />
-        <EdgeLegend />
-        <nav className="mt-6 text-xs space-y-1">
-          <a href="/log" className="block text-blue-600">→ /log</a>
-          <a href="/stats" className="block text-blue-600">→ /stats</a>
-        </nav>
+    <div className="flex h-screen bg-neutral-950 text-neutral-200">
+      <aside className="w-72 flex-shrink-0 border-r border-neutral-800 bg-neutral-900 overflow-y-auto">
+        <div className="p-5 border-b border-neutral-800">
+          <div className="text-xs text-neutral-500 uppercase tracking-wider">지식 그래프</div>
+          <h1 className="text-2xl font-bold text-neutral-50 mt-1">LLM Wiki</h1>
+          <div className="text-xs text-neutral-500 mt-2 tabular-nums">
+            {graph.nodes.length} 노드 · {graph.edges.length} 엣지
+          </div>
+        </div>
+        <div className="p-5">
+          <FilterBar enabled={enabledTypes} onChange={setEnabledTypes} graph={graph} />
+          <EdgeLegend graph={graph} />
+          <nav className="mt-6 pt-6 border-t border-neutral-800 text-xs space-y-1">
+            <a href="/log" className="block text-neutral-400 hover:text-neutral-200">→ /log</a>
+            <a href="/stats" className="block text-neutral-400 hover:text-neutral-200">→ /stats</a>
+          </nav>
+        </div>
       </aside>
       <main className="flex-1 relative">
         <ForceGraphCanvas
           nodes={filtered.nodes}
           edges={filtered.edges}
+          selectedId={selectedId}
           onNodeClick={(id) => setSelectedId(id)}
         />
       </main>
-      <aside className="w-96 border-l overflow-y-auto">
+      <aside className="w-96 flex-shrink-0 border-l border-neutral-800 bg-neutral-900 overflow-y-auto">
         {selected ? (
           <NodePanel node={selected} html={graph.contents[selected.id]} graph={graph} />
         ) : (
-          <div className="p-4 text-gray-500">노드를 클릭하면 본문이 표시됩니다.</div>
+          <div className="p-5 text-neutral-500 text-sm">노드를 클릭하면 본문이 표시됩니다.</div>
         )}
       </aside>
     </div>

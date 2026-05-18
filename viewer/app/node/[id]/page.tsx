@@ -14,9 +14,13 @@ export default async function NodePage({ params }: { params: { id: string } }) {
   const node = graph.nodes.find(n => n.id === params.id);
   if (!node) notFound();
   return (
-    <div className="max-w-3xl mx-auto p-8">
-      <a href="/" className="text-sm text-blue-600">← graph</a>
-      <NodePanel node={node!} html={graph.contents[node!.id]} graph={graph} />
+    <div className="min-h-screen bg-neutral-950">
+      <div className="max-w-3xl mx-auto p-8">
+        <a href="/" className="text-sm text-sky-400 hover:underline">← graph</a>
+        <div className="mt-4">
+          <NodePanel node={node!} html={graph.contents[node!.id]} graph={graph} />
+        </div>
+      </div>
     </div>
   );
 }
