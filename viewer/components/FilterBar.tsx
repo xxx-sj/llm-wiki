@@ -2,7 +2,7 @@
 
 import { NODE_TYPES, NODE_TYPE_EN } from '@/lib/schema';
 import type { NodeType, GraphData } from '@/lib/schema';
-import { NODE_COLOR, NODE_COLOR_DISABLED } from '@/lib/color-map';
+import { NODE_COLOR } from '@/lib/color-map';
 
 interface Props {
   enabled: Set<NodeType>;
@@ -24,11 +24,15 @@ export default function FilterBar({ enabled, onChange, graph }: Props) {
 
   return (
     <div className="mb-6">
-      <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-3">노드 유형</h2>
+      <h2 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--fg-4)' }}>노드 유형</h2>
       <ul className="space-y-1.5">
         {NODE_TYPES.map(t => {
           const on = enabled.has(t);
-          const dotColor = on ? NODE_COLOR[t] : NODE_COLOR_DISABLED;
+          // ON: 노드 자체 색 (의미·통찰·절차·사건·주제 = fg-2 흰색, 주장 = red)
+          // OFF: fg-5 (disabled gray)
+          const dotColor = on ? NODE_COLOR[t] : 'var(--fg-5)';
+          const textColor = on ? 'var(--fg-2)' : 'var(--fg-5)';
+          const subColor = on ? 'var(--fg-4)' : 'var(--fg-5)';
           return (
             <li key={t}>
               <button
@@ -39,11 +43,11 @@ export default function FilterBar({ enabled, onChange, graph }: Props) {
                   className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0 transition-colors"
                   style={{ backgroundColor: dotColor }}
                 />
-                <span className={on ? 'text-neutral-200' : 'text-neutral-600'}>{t}</span>
-                <span className={`text-xs lowercase ${on ? 'text-neutral-500' : 'text-neutral-700'}`}>
+                <span style={{ color: textColor }}>{t}</span>
+                <span className="text-xs lowercase" style={{ color: subColor }}>
                   {NODE_TYPE_EN[t]}
                 </span>
-                <span className={`ml-auto text-xs tabular-nums ${on ? 'text-neutral-500' : 'text-neutral-700'}`}>
+                <span className="ml-auto text-xs tabular-nums" style={{ color: subColor }}>
                   {counts[t]}
                 </span>
               </button>

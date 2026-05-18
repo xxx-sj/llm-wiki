@@ -1,28 +1,37 @@
 import type { NodeType, EdgeType } from './schema';
 
-// 노드: 기본 흰색, 주장(thesis)만 빨강 강조 — 레퍼런스 컨벤션
+// CSS 변수 --fg-N 미러 (canvas는 raw 값 필요)
+export const FG = {
+  '1': '#ffffff',
+  '2': '#ededed',  // ON / primary
+  '3': '#a1a1a1',  // secondary
+  '4': '#707070',  // muted
+  '5': '#525252'   // disabled
+} as const;
+
+// 노드: 기본 fg-2(흰색), 주장(thesis)만 빨강 강조 — 레퍼런스 컨벤션
 export const NODE_COLOR: Record<NodeType, string> = {
-  '의미':   '#e5e5e5',
-  '통찰':   '#e5e5e5',
-  '절차':   '#e5e5e5',
-  '사건':   '#e5e5e5',
+  '의미':   FG['2'],
+  '통찰':   FG['2'],
+  '절차':   FG['2'],
+  '사건':   FG['2'],
   '주장':   '#f87171', // 강조 (thesis)
-  '주제':   '#e5e5e5'
+  '주제':   FG['2']
 };
 
-export const NODE_COLOR_DISABLED = '#3f3f46'; // zinc-700, 어둡게
+export const NODE_COLOR_DISABLED = FG['5'];
 
 // 엣지: 모두 회색 톤, 반박만 빨강 강조
 export const EDGE_COLOR: Record<EdgeType, string> = {
-  '지지':     '#525252',
+  '지지':     FG['5'],
   '반박':     '#f87171', // 강조 (반박)
-  '확장':     '#525252',
-  '구체화':   '#525252',
-  '정련':     '#525252',
-  '유사':     '#525252',
-  '촉발':     '#525252',
-  '주제태그': '#525252',
-  '전제':     '#525252'
+  '확장':     FG['5'],
+  '구체화':   FG['5'],
+  '정련':     FG['5'],
+  '유사':     FG['5'],
+  '촉발':     FG['5'],
+  '주제태그': FG['5'],
+  '전제':     FG['5']
 };
 
 // 점선 패턴 (유사·주제태그 — 약한/메타 관계)
@@ -46,9 +55,9 @@ export const COLORS = {
   bg: '#0a0a0a',
   sidebar: '#171717',
   border: '#262626',
-  textPrimary: '#e5e5e5',
-  textSecondary: '#a3a3a3',
-  textMuted: '#737373',
-  textDisabled: '#52525b',
+  textPrimary: FG['2'],
+  textSecondary: FG['3'],
+  textMuted: FG['4'],
+  textDisabled: FG['5'],
   accent: '#f87171'
 };
