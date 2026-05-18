@@ -1,0 +1,37 @@
+{
+  "name": "llm-wiki-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prebuild": "tsx scripts/build.ts",
+    "predev": "tsx scripts/build.ts",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "gray-matter": "^4.0.3",
+    "remark": "^15.0.1",
+    "remark-html": "^16.0.1",
+    "react-force-graph-2d": "^1.25.5",
+    "fast-glob": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.4.5",
+    "tailwindcss": "^3.4.4",
+    "@tailwindcss/typography": "^0.5.13",
+    "postcss": "^8.4.38",
+    "autoprefixer": "^10.4.19",
+    "vitest": "^1.6.0",
+    "tsx": "^4.16.2"
+  }
+}
