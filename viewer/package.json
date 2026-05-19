@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild": "tsx scripts/build.ts",
-    "predev": "tsx scripts/build.ts",
+    "prebuild": "tsx scripts/build.ts && tsx scripts/build-embeddings.ts",
+    "predev": "tsx scripts/build.ts && tsx scripts/build-embeddings.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

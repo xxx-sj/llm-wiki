@@ -9,6 +9,7 @@ out/
 
 # Build artifacts (viewer 빌드 산출물은 commit 안 함)
 viewer/public/graph.json
+viewer/public/embeddings.json
 
 # Env
 .env

@@ -2,6 +2,7 @@ node_modules/
 .next/
 out/
 public/graph.json
+public/embeddings.json
 .env*.local
 coverage/
 *.tsbuildinfo
