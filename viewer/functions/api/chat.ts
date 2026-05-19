@@ -4,12 +4,11 @@
  * RAG 흐름:
  *   1. question -> OpenAI 임베딩
  *   2. /embeddings.json 과 코사인 유사도 → top-K 노드
- *   3. top-K 본문 + system prompt + question → Anthropic Claude streaming
- *   4. SSE 응답 (cited nodes 메타 + Claude raw stream pass-through)
+ *   3. top-K 본문 + system prompt + question → OpenAI Chat Completions streaming
+ *   4. SSE 응답 (cited nodes 메타 + OpenAI raw stream pass-through)
  *
  * 환경변수 (Cloudflare Pages dashboard → Settings → Environment Variables):
- *   - OPENAI_API_KEY    : 임베딩용
- *   - ANTHROPIC_API_KEY : 답변 생성용
+ *   - OPENAI_API_KEY : 임베딩 + 답변 생성 (한 key로 통일)
  *
  * 인증: Cloudflare Access (Zero Trust) 게이트로 /api/* 보호 권장.
  * Rate limit: Cloudflare WAF Custom Rule로 /api/chat 분당 N회 제한.
@@ -17,7 +16,6 @@
 
 interface Env {
   OPENAI_API_KEY: string;
-  ANTHROPIC_API_KEY: string;
 }
 
 interface ChatRequest {
@@ -44,7 +42,7 @@ interface EmbeddingsData {
 }
 
 const EMBED_MODEL = 'text-embedding-3-small';
-const CHAT_MODEL = 'claude-haiku-4-5-20251001';
+const CHAT_MODEL = 'gpt-4o-mini';
 const MAX_QUESTION_CHARS = 1000;
 const MAX_CONTEXT_CHARS_PER_NODE = 2000;
 const DEFAULT_TOPK = 5;
@@ -80,10 +78,7 @@ async function embedQuestion(question: string, apiKey: string): Promise<number[]
   return data.data[0].embedding;
 }
 
-function buildSystemPrompt(
-  contextStr: string,
-  topK: number
-): string {
+function buildSystemPrompt(contextStr: string, topK: number): string {
   return [
     '당신은 사용자의 개인 LLM Wiki 어시스턴트입니다.',
     '아래 "참고 노드"의 본문을 기반으로 사용자 질문에 한국어로 답합니다.',
@@ -106,8 +101,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const { request, env } = context;
 
-    if (!env.OPENAI_API_KEY || !env.ANTHROPIC_API_KEY) {
-      return json({ error: 'server_misconfigured', detail: 'OPENAI_API_KEY or ANTHROPIC_API_KEY env missing' }, 500);
+    if (!env.OPENAI_API_KEY) {
+      return json({ error: 'server_misconfigured', detail: 'OPENAI_API_KEY env missing' }, 500);
     }
 
     const body = (await request.json().catch(() => ({}))) as ChatRequest;
@@ -164,31 +159,32 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     const systemPrompt = buildSystemPrompt(contextStr, topK);
 
-    // 4. Claude streaming
-    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+    // 4. OpenAI Chat Completions streaming
+    const chatRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
         model: CHAT_MODEL,
         max_tokens: 2000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: question }],
-        stream: true
+        stream: true,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: question }
+        ]
       })
     });
 
-    if (!claudeRes.ok || !claudeRes.body) {
-      const errText = await claudeRes.text().catch(() => '');
-      return json({ error: 'claude_error', status: claudeRes.status, detail: errText.slice(0, 500) }, 502);
+    if (!chatRes.ok || !chatRes.body) {
+      const errText = await chatRes.text().catch(() => '');
+      return json({ error: 'openai_chat_error', status: chatRes.status, detail: errText.slice(0, 500) }, 502);
     }
 
     // 5. SSE pass-through + cited meta 먼저 emit
     const encoder = new TextEncoder();
-    const reader = claudeRes.body.getReader();
+    const reader = chatRes.body.getReader();
 
     const citedMeta = top.map(t => {
       const node = graph.nodes.find(n => n.id === t.id)!;
