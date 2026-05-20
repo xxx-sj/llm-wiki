@@ -7,9 +7,11 @@ npm-debug.log*
 .next/
 out/
 
-# Build artifacts (viewer 빌드 산출물은 commit 안 함)
+# Build artifacts
 viewer/public/graph.json
-viewer/public/embeddings.json
+# embeddings.json은 빌드 캐시 역할도 겸함 — commit하면 incremental build로 비용 절감
+# (commit 안 하면 매 빌드마다 전체 재계산. 노드 수 많을수록 비용 차이 큼)
+# viewer/public/embeddings.json
 
 # Env
 .env

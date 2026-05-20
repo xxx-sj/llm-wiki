@@ -2,7 +2,8 @@ node_modules/
 .next/
 out/
 public/graph.json
-public/embeddings.json
+# embeddings.json은 incremental build 캐시 — commit 권장 (변경 노드만 OpenAI 호출)
+# public/embeddings.json
 .env*.local
 coverage/
 *.tsbuildinfo
