@@ -14,14 +14,16 @@ interface Props {
   nodes: GraphNode[];
   edges: GraphEdge[];
   selectedId: string | null;
+  /** 챗봇 답변에 인용된 노드 id (그래프에서 강조). hover보다 우선순위 낮음. */
+  chatCitedIds?: string[];
   onNodeClick: (id: string) => void;
 }
 
-// dim한 색 (hover 활성 아닌 노드/엣지)
+// dim한 색 (hover/chat 활성 아닌 노드/엣지)
 const DIM_NODE = '#444';
 const DIM_EDGE = '#1a1a1a';
 
-export default function ForceGraphCanvas({ nodes, edges, selectedId, onNodeClick }: Props) {
+export default function ForceGraphCanvas({ nodes, edges, selectedId, chatCitedIds, onNodeClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -50,13 +52,19 @@ export default function ForceGraphCanvas({ nodes, edges, selectedId, onNodeClick
     return map;
   }, [edges]);
 
+  // hover 우선, hover 없으면 chat cited 적용
   const highlightSet = useMemo(() => {
-    if (!hoveredId) return null;
-    const s = new Set<string>([hoveredId]);
-    const adj = adjacency.get(hoveredId);
-    if (adj) for (const id of adj) s.add(id);
-    return s;
-  }, [hoveredId, adjacency]);
+    if (hoveredId) {
+      const s = new Set<string>([hoveredId]);
+      const adj = adjacency.get(hoveredId);
+      if (adj) for (const id of adj) s.add(id);
+      return s;
+    }
+    if (chatCitedIds && chatCitedIds.length > 0) {
+      return new Set<string>(chatCitedIds);
+    }
+    return null;
+  }, [hoveredId, adjacency, chatCitedIds]);
 
   // graphData는 nodes/edges가 실제 바뀔 때만 새 reference 발급.
   // hover state 변경 시 새 객체를 만들면 react-force-graph가 시뮬레이션을 재시작해서 노드가 "튐".

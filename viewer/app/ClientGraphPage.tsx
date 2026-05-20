@@ -6,12 +6,14 @@ import ForceGraphCanvas from '@/components/ForceGraphCanvas';
 import NodePanel from '@/components/NodePanel';
 import FilterBar from '@/components/FilterBar';
 import EdgeLegend from '@/components/EdgeLegend';
+import ChatPanel from '@/components/ChatPanel';
 import { NODE_TYPES } from '@/lib/schema';
 import { filterGraph } from '@/lib/filter-graph';
 
 export default function ClientGraphPage({ graph }: { graph: GraphData }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [enabledTypes, setEnabledTypes] = useState<Set<NodeType>>(new Set(NODE_TYPES));
+  const [chatCitedIds, setChatCitedIds] = useState<string[]>([]);
 
   const filtered = useMemo(
     () => filterGraph(graph, enabledTypes),
@@ -21,6 +23,10 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
   const selected: GraphNode | undefined = selectedId
     ? graph.nodes.find(n => n.id === selectedId)
     : undefined;
+
+  function handleCitationClick(id: string) {
+    setSelectedId(id);
+  }
 
   return (
     <div className="flex h-screen" style={{ backgroundColor: 'var(--bg)', color: 'var(--fg-2)' }}>
@@ -51,14 +57,26 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
           </nav>
         </div>
       </aside>
+
       <main className="flex-1 relative">
         <ForceGraphCanvas
           nodes={filtered.nodes}
           edges={filtered.edges}
           selectedId={selectedId}
+          chatCitedIds={chatCitedIds}
           onNodeClick={(id) => setSelectedId(id)}
         />
+        {/* ChatPanel — 그래프 상단 floating */}
+        <div className="absolute top-4 left-0 right-0 px-4 z-10 pointer-events-none">
+          <div className="pointer-events-auto">
+            <ChatPanel
+              onCitedChange={setChatCitedIds}
+              onCitationClick={handleCitationClick}
+            />
+          </div>
+        </div>
       </main>
+
       <aside
         className="w-96 flex-shrink-0 overflow-y-auto"
         style={{
