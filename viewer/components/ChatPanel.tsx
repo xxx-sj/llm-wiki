@@ -132,11 +132,12 @@ export default function ChatPanel({ onCitedChange, onCitationClick }: Props) {
       {/* 답변 영역 */}
       {hasContent && (
         <div
-          className="mt-2 rounded-xl border p-5 max-h-[60vh] overflow-y-auto"
+          className="mt-2 rounded-xl border p-4 md:p-5 overflow-y-auto"
           style={{
             backgroundColor: 'rgba(20, 20, 20, 0.92)',
             borderColor: 'var(--border-2)',
-            backdropFilter: 'blur(8px)'
+            backdropFilter: 'blur(8px)',
+            maxHeight: 'min(60vh, 60dvh)'
           }}
         >
           {cited.length > 0 && (
