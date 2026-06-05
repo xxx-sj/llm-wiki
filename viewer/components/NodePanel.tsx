@@ -19,7 +19,7 @@ export default function NodePanel({ node, html, graph }: Props) {
   const incoming = graph.edges.filter(e => e.target === node.id);
 
   return (
-    <div className="p-5">
+    <div className="p-5 min-w-0">
       <div className="mb-3 flex items-center gap-2 flex-wrap">
         <NodeBadge type={node.node_type} />
         <span className="text-[12px] lowercase" style={{ color: 'var(--fg-5)' }}>{NODE_TYPE_EN[node.node_type]}</span>

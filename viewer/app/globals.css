@@ -110,21 +110,39 @@ h1, h2, h3 {
 .prose ul, .prose ol {
   color: var(--fg-2);
 }
+/* 좁은 패널에서도 긴 단어/URL이 잘 잘리도록 */
+.prose, .prose p, .prose li, .prose td, .prose th {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+/* 코드/pre는 가로 스크롤 (잘리지 않게) */
+.prose pre {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.prose code {
+  word-break: break-all;
+}
+/* 표가 패널 폭 넘으면 가로 스크롤 가능하게 wrapper */
 .prose table {
   border-collapse: collapse;
   width: 100%;
   margin: 1em 0;
   font-size: 0.9em;
+  display: block;
+  overflow-x: auto;
 }
 .prose th, .prose td {
   border: 1px solid var(--border-2);
   padding: 0.5em 0.75em;
   text-align: left;
+  vertical-align: top;
 }
 .prose th {
   background-color: var(--surface-2);
   color: var(--fg-1);
   font-weight: 600;
+  white-space: nowrap;
 }
 .prose tbody tr:nth-child(odd) {
   background-color: rgba(255, 255, 255, 0.02);

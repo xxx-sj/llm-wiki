@@ -11,9 +11,24 @@ import { NODE_TYPES } from '@/lib/schema';
 import { filterGraph } from '@/lib/filter-graph';
 
 const PANEL_MIN = 280;
-const PANEL_MAX = 900;
-const PANEL_DEFAULT = 384; // = w-96
+const PANEL_MAX_ABS = 1200;     // 절대 상한
+const PANEL_DEFAULT = 384;      // = w-96
 const PANEL_LS_KEY = 'llm-wiki:node-panel-width';
+const LEFT_SIDEBAR_W = 288;     // md:w-72
+const HANDLE_W = 4;
+const MAIN_MIN = 320;           // 그래프 영역 최소
+
+/** viewport에 맞춰 panel 최대 폭 계산 (main이 최소 폭 유지하게) */
+function getDynamicMax(): number {
+  if (typeof window === 'undefined') return PANEL_DEFAULT;
+  const vw = window.innerWidth;
+  const fromViewport = vw - LEFT_SIDEBAR_W - HANDLE_W - MAIN_MIN;
+  return Math.max(PANEL_MIN, Math.min(PANEL_MAX_ABS, fromViewport));
+}
+
+function clampPanelWidth(w: number): number {
+  return Math.max(PANEL_MIN, Math.min(getDynamicMax(), w));
+}
 
 export default function ClientGraphPage({ graph }: { graph: GraphData }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -24,15 +39,20 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number; width: number } | null>(null);
 
-  // localStorage에서 폭 복원 (첫 mount)
+  // localStorage에서 폭 복원 (첫 mount) + viewport 리사이즈 시 자동 clamp
   useEffect(() => {
     const saved = localStorage.getItem(PANEL_LS_KEY);
     if (saved) {
       const n = parseInt(saved, 10);
-      if (!Number.isNaN(n) && n >= PANEL_MIN && n <= PANEL_MAX) {
-        setPanelWidth(n);
+      if (!Number.isNaN(n)) {
+        setPanelWidth(clampPanelWidth(n));
       }
     }
+    function onResize() {
+      setPanelWidth(prev => clampPanelWidth(prev));
+    }
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   // 드래그 중 mousemove/mouseup 글로벌 핸들러
@@ -41,7 +61,8 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
     function onMove(e: MouseEvent) {
       if (!dragStartRef.current) return;
       const dx = dragStartRef.current.x - e.clientX; // 오른쪽 패널이라 왼쪽으로 끌면 폭 증가
-      const next = Math.max(PANEL_MIN, Math.min(PANEL_MAX, dragStartRef.current.width + dx));
+      // viewport에 맞춰 main이 최소 폭 유지하도록 동적 max 적용
+      const next = clampPanelWidth(dragStartRef.current.width + dx);
       setPanelWidth(next);
     }
     function onUp() {
@@ -64,8 +85,9 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
   }, [panelWidth]);
 
   const handleDoubleClick = useCallback(() => {
-    setPanelWidth(PANEL_DEFAULT);
-    try { localStorage.setItem(PANEL_LS_KEY, String(PANEL_DEFAULT)); } catch {}
+    const w = clampPanelWidth(PANEL_DEFAULT);
+    setPanelWidth(w);
+    try { localStorage.setItem(PANEL_LS_KEY, String(w)); } catch {}
   }, []);
 
   const filtered = useMemo(
