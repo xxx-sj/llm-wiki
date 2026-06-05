@@ -15,7 +15,7 @@ const PANEL_MAX_ABS = 1200;     // 절대 상한
 const PANEL_DEFAULT = 384;      // = w-96
 const PANEL_LS_KEY = 'llm-wiki:node-panel-width';
 const LEFT_SIDEBAR_W = 288;     // md:w-72
-const HANDLE_W = 4;
+const HANDLE_W = 8;
 const MAIN_MIN = 320;           // 그래프 영역 최소
 
 /** viewport에 맞춰 panel 최대 폭 계산 (main이 최소 폭 유지하게) */
@@ -227,32 +227,51 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
         title="드래그로 폭 조절 / 더블클릭하면 기본값"
         onMouseDown={handleDragStart}
         onDoubleClick={handleDoubleClick}
-        className="hidden md:block flex-shrink-0 relative"
+        className="hidden md:flex flex-shrink-0 relative items-center justify-center group"
         style={{
-          width: 4,
-          backgroundColor: isDragging ? 'var(--accent)' : 'var(--border-1)',
+          width: 8,
+          backgroundColor: isDragging ? 'var(--accent)' : 'var(--surface-2)',
           cursor: 'col-resize',
           transition: isDragging ? undefined : 'background-color 150ms'
         }}
-        onMouseEnter={(e) => { if (!isDragging) e.currentTarget.style.backgroundColor = 'var(--border-3)'; }}
-        onMouseLeave={(e) => { if (!isDragging) e.currentTarget.style.backgroundColor = 'var(--border-1)'; }}
-      />
+        onMouseEnter={(e) => { if (!isDragging) e.currentTarget.style.backgroundColor = 'var(--accent-soft)'; }}
+        onMouseLeave={(e) => { if (!isDragging) e.currentTarget.style.backgroundColor = 'var(--surface-2)'; }}
+      >
+        {/* 가운데 작은 도트 (잡기 좋게 시각화) */}
+        <div
+          className="pointer-events-none"
+          style={{
+            width: 2,
+            height: 32,
+            borderRadius: 1,
+            backgroundColor: isDragging ? '#fff' : 'var(--fg-5)',
+            opacity: isDragging ? 1 : 0.6
+          }}
+        />
+      </div>
 
       {/* 데스크탑 우측 NodePanel (폭 조절 가능) */}
       <aside
-        className="hidden md:block flex-shrink-0 overflow-y-auto"
+        className="hidden md:block flex-shrink-0 overflow-y-auto overflow-x-hidden"
         style={{
           width: panelWidth,
+          maxWidth: panelWidth,
           backgroundColor: 'var(--surface-1)'
         }}
       >
         {selected ? (
           <NodePanel node={selected} html={graph.contents[selected.id]} graph={graph} />
         ) : (
-          <div className="p-5 text-sm" style={{ color: 'var(--fg-5)' }}>
-            노드를 클릭하면 본문이 표시됩니다.
-            <div className="mt-3 text-[11px]" style={{ color: 'var(--fg-6)' }}>
-              💡 좌측 경계를 드래그해 패널 폭을 조절할 수 있어요. 더블클릭으로 기본값 복원.
+          <div className="h-full flex flex-col items-center justify-center text-center px-8 gap-3">
+            <div className="text-[15px]" style={{ color: 'var(--fg-3)' }}>
+              ← 그래프에서 노드를 클릭하세요
+            </div>
+            <div className="text-[12px]" style={{ color: 'var(--fg-5)' }}>
+              노드 본문 · 인용 엣지가 여기 표시됩니다
+            </div>
+            <div className="mt-6 text-[11px] leading-relaxed" style={{ color: 'var(--fg-6)' }}>
+              💡 좌측 경계를 드래그해 패널 폭 조절<br />
+              더블클릭하면 기본값 복원
             </div>
           </div>
         )}

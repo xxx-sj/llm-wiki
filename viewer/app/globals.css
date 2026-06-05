@@ -111,17 +111,25 @@ h1, h2, h3 {
   color: var(--fg-2);
 }
 /* 좁은 패널에서도 긴 단어/URL이 잘 잘리도록 */
-.prose, .prose p, .prose li, .prose td, .prose th {
+.prose, .prose p, .prose li, .prose td, .prose th, .prose h1, .prose h2, .prose h3, .prose h4, .prose a {
   overflow-wrap: anywhere;
   word-break: break-word;
+  min-width: 0;
 }
 /* 코드/pre는 가로 스크롤 (잘리지 않게) */
 .prose pre {
   overflow-x: auto;
   max-width: 100%;
 }
-.prose code {
+/* 인라인 code (예: `2026-06-05-...`) 강제 줄바꿈 */
+.prose code, .prose :not(pre) > code {
   word-break: break-all;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.prose pre code {
+  word-break: normal;
+  white-space: pre;
 }
 /* 표가 패널 폭 넘으면 가로 스크롤 가능하게 wrapper */
 .prose table {
