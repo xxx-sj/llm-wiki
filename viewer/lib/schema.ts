@@ -45,6 +45,17 @@ export type MemoryType = typeof MEMORY_TYPES[number];
 export const ORIGINS = ['self', 'external', 'synthesized'] as const;
 export type Origin = typeof ORIGINS[number];
 
+/**
+ * 노드가 어떤 표면(surface)에 쓰일 수 있는지 표시.
+ * 같은 노드를 여러 표면으로 렌더할 때 어느 표면에 적합한지 lint/검색이 활용.
+ * - rag-eligible: 챗봇 답변에 인용 가능 (default)
+ * - lecture-ready: 강의/발표에 쓸 만큼 정제됨
+ * - blog-ready: 블로그 글로 펼칠 만함
+ * - private-only: 내부용, 외부 발행 금지
+ */
+export const SURFACES = ['rag-eligible', 'lecture-ready', 'blog-ready', 'private-only'] as const;
+export type Surface = typeof SURFACES[number];
+
 export type Scope = 'work' | 'personal';
 export type Confidence = 'high' | 'medium' | 'low';
 
@@ -61,6 +72,8 @@ export interface NodeFrontmatter {
    * 미지정 시 1 default.
    */
   meaning_version?: number;
+  /** 이 노드가 쓰일 수 있는 표면 (선택, default ['rag-eligible']) */
+  surfaces?: Surface[];
   created: string;             // YYYY-MM-DD
   last_reviewed: string;
   confidence?: Confidence;
@@ -81,6 +94,7 @@ export interface GraphNode {
   memory_type: MemoryType;
   origin: Origin;
   meaning_version: number;
+  surfaces: Surface[];
   scope: Scope;
   in_degree: number;
   out_degree: number;

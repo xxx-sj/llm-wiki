@@ -89,6 +89,21 @@ tags: [자유태그]                        # optional
 - `fingerprint`(자동): **글자 변화** 감지 → 임베딩 재계산
 - `meaning_version`(수동): **의미 변화** 선언 → 인용한 노드들 stale 표시
 
+### surfaces — 노드가 어느 표면에 쓸 수 있는지
+
+```yaml
+surfaces:
+  - rag-eligible          # 챗봇 답변에 인용 가능 (default)
+  - lecture-ready         # 강의/발표에 쓸 만큼 정제됨
+  - blog-ready            # 블로그 글로 펼칠 만함
+  - private-only          # 내부용, 외부 발행 금지
+```
+
+- 미지정 시 default: `[rag-eligible]`
+- **`private-only`** 만 있는 노드는 `/api/chat` 검색에서 자동 제외 (RAG 답변에 안 나옴)
+- `wiki/work/` 노드 + 본인이 외부 노출 원하지 않는 노드는 `[private-only]` 명시 권장
+- `wiki/work/`는 이미 빌드에서 통째로 제외되지만, `wiki/personal/` 안에서도 발행 안 할 노드는 surfaces로 추가 보호
+
 ### 엔티티 노드 + 언급 엣지
 
 사람·회사·이벤트 같은 named entity는 `엔티티` node_type으로 둠:
@@ -120,6 +135,20 @@ links:
 - `links:`는 forward(나가는) 엣지만 기재.
 - 백링크/in-degree는 build-graph가 자동 계산.
 - 새 노드 만들 때 기존 노드의 frontmatter를 수정하지 않는다(인용받는 쪽은 수정 X).
+
+### 엣지 저장 두 방식 (양립)
+
+| 저장 위치 | 권장 시점 |
+|---|---|
+| **노드 frontmatter `links:`** (default) | 노드와 함께 보면 됨, 작은 wiki에 단순. **시드 데이터는 여기** |
+| **`wiki/edges.jsonl`** (선택, append-only) | 엣지 수 100+ 또는 엣지 메타(confidence, history)를 노드 변경 없이 추가하고 싶을 때 |
+
+`build-graph`가 둘 다 읽어서 합쳐서 graph.json 생성. `edges.jsonl` 한 줄 = 한 엣지:
+```jsonl
+{"source":"id1","target":"id2","type":"전제","note":"...","to_meaning_version":1,"created":"2026-05-20"}
+```
+
+→ 점진적 마이그레이션 가능. 노드 1000+ 시점에 frontmatter → jsonl로 옮길 수 있음. 지금은 frontmatter 그대로.
 
 ## node_type ↔ memory_type 권장 매핑
 

@@ -5,7 +5,7 @@ import matter from 'gray-matter';
 import { remark } from 'remark';
 import remarkHtml from 'remark-html';
 import fg from 'fast-glob';
-import type { NodeFrontmatter, Scope, EdgeType, Origin, GraphData, GraphNode, GraphEdge } from './schema.js';
+import type { NodeFrontmatter, Scope, EdgeType, Origin, Surface, GraphData, GraphNode, GraphEdge } from './schema.js';
 
 export interface ParsedNode {
   id: string;
@@ -14,6 +14,7 @@ export interface ParsedNode {
   memory_type: NodeFrontmatter['memory_type'];
   origin: Origin;
   meaning_version: number;
+  surfaces: Surface[];
   scope: Scope;
   created: string;
   last_reviewed: string;
@@ -55,6 +56,7 @@ export async function parseNode(absFilePath: string, wikiRoot: string): Promise<
     memory_type: fm.memory_type,
     origin: fm.origin ?? 'self',
     meaning_version: fm.meaning_version ?? 1,
+    surfaces: fm.surfaces ?? ['rag-eligible'],
     scope,
     created: fm.created,
     last_reviewed: fm.last_reviewed,
@@ -82,10 +84,34 @@ export async function loadAllNodes(wikiRoot: string): Promise<ParsedNode[]> {
   return Promise.all(files.map(f => parseNode(f, wikiRoot)));
 }
 
+/**
+ * wiki/edges.jsonl을 읽어 추가 엣지로 반환 (선택).
+ * 한 줄 = 한 엣지 JSON. 형식:
+ *   {"source":"id1","target":"id2","type":"전제","note":"...","to_meaning_version":1,"created":"YYYY-MM-DD"}
+ * frontmatter links와 양립 — 둘 다 빌드 시 합쳐짐.
+ */
+async function loadEdgesJsonl(wikiRoot: string): Promise<GraphEdge[]> {
+  const edgesPath = path.join(wikiRoot, 'edges.jsonl');
+  try {
+    const raw = await readFile(edgesPath, 'utf8');
+    const lines = raw.split('\n').filter(l => l.trim() && !l.trim().startsWith('#'));
+    return lines.map(line => {
+      const obj = JSON.parse(line);
+      const e: GraphEdge = { source: obj.source, target: obj.target, type: obj.type };
+      if (obj.note) e.note = obj.note;
+      if (obj.to_meaning_version !== undefined) e.to_meaning_version = obj.to_meaning_version;
+      return e;
+    });
+  } catch {
+    return []; // edges.jsonl 없으면 빈 배열
+  }
+}
+
 export async function buildGraph(wikiRoot: string): Promise<GraphData> {
   const parsed = await loadAllNodes(wikiRoot);
 
   const edges: GraphEdge[] = [];
+  // (1) frontmatter links
   for (const p of parsed) {
     for (const link of p.links) {
       const edge: GraphEdge = { source: p.id, target: link.to, type: link.type };
@@ -94,6 +120,9 @@ export async function buildGraph(wikiRoot: string): Promise<GraphData> {
       edges.push(edge);
     }
   }
+  // (2) wiki/edges.jsonl (있으면)
+  const jsonlEdges = await loadEdgesJsonl(wikiRoot);
+  edges.push(...jsonlEdges);
 
   const inDegree = new Map<string, number>();
   const outDegree = new Map<string, number>();
@@ -109,6 +138,7 @@ export async function buildGraph(wikiRoot: string): Promise<GraphData> {
     memory_type: p.memory_type,
     origin: p.origin,
     meaning_version: p.meaning_version,
+    surfaces: p.surfaces,
     scope: p.scope,
     in_degree: inDegree.get(p.id) ?? 0,
     out_degree: outDegree.get(p.id) ?? 0,
