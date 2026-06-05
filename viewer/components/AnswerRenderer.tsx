@@ -1,6 +1,7 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Props {
   text: string;
@@ -21,6 +22,7 @@ export default function AnswerRenderer({ text, onCitationClick }: Props) {
   return (
     <div className="prose prose-sm prose-invert max-w-none" style={{ color: 'var(--fg-2)' }}>
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           a: ({ href, children }) => {
             const id = href?.startsWith('#cite-') ? href.slice(6) : null;

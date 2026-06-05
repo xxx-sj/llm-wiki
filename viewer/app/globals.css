@@ -110,3 +110,22 @@ h1, h2, h3 {
 .prose ul, .prose ol {
   color: var(--fg-2);
 }
+.prose table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  font-size: 0.9em;
+}
+.prose th, .prose td {
+  border: 1px solid var(--border-2);
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+.prose th {
+  background-color: var(--surface-2);
+  color: var(--fg-1);
+  font-weight: 600;
+}
+.prose tbody tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.02);
+}

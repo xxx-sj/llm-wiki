@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import type { GraphData, GraphNode, NodeType } from '@/lib/schema';
 import ForceGraphCanvas from '@/components/ForceGraphCanvas';
 import NodePanel from '@/components/NodePanel';
@@ -10,13 +10,64 @@ import ChatPanel from '@/components/ChatPanel';
 import { NODE_TYPES } from '@/lib/schema';
 import { filterGraph } from '@/lib/filter-graph';
 
+const PANEL_MIN = 280;
+const PANEL_MAX = 900;
+const PANEL_DEFAULT = 384; // = w-96
+const PANEL_LS_KEY = 'llm-wiki:node-panel-width';
+
 export default function ClientGraphPage({ graph }: { graph: GraphData }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [enabledTypes, setEnabledTypes] = useState<Set<NodeType>>(new Set(NODE_TYPES));
   const [chatCitedIds, setChatCitedIds] = useState<string[]>([]);
   const [sideOpen, setSideOpen] = useState(false); // 모바일 사이드바 toggle
+  const [panelWidth, setPanelWidth] = useState<number>(PANEL_DEFAULT);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef<{ x: number; width: number } | null>(null);
 
-  // 노드 선택 시 모바일에선 NodePanel(우측)이 drawer로 떠야 함 — 자동 닫힘은 X
+  // localStorage에서 폭 복원 (첫 mount)
+  useEffect(() => {
+    const saved = localStorage.getItem(PANEL_LS_KEY);
+    if (saved) {
+      const n = parseInt(saved, 10);
+      if (!Number.isNaN(n) && n >= PANEL_MIN && n <= PANEL_MAX) {
+        setPanelWidth(n);
+      }
+    }
+  }, []);
+
+  // 드래그 중 mousemove/mouseup 글로벌 핸들러
+  useEffect(() => {
+    if (!isDragging) return;
+    function onMove(e: MouseEvent) {
+      if (!dragStartRef.current) return;
+      const dx = dragStartRef.current.x - e.clientX; // 오른쪽 패널이라 왼쪽으로 끌면 폭 증가
+      const next = Math.max(PANEL_MIN, Math.min(PANEL_MAX, dragStartRef.current.width + dx));
+      setPanelWidth(next);
+    }
+    function onUp() {
+      setIsDragging(false);
+      dragStartRef.current = null;
+      try { localStorage.setItem(PANEL_LS_KEY, String(panelWidth)); } catch {}
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [isDragging, panelWidth]);
+
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dragStartRef.current = { x: e.clientX, width: panelWidth };
+    setIsDragging(true);
+  }, [panelWidth]);
+
+  const handleDoubleClick = useCallback(() => {
+    setPanelWidth(PANEL_DEFAULT);
+    try { localStorage.setItem(PANEL_LS_KEY, String(PANEL_DEFAULT)); } catch {}
+  }, []);
+
   const filtered = useMemo(
     () => filterGraph(graph, enabledTypes),
     [graph, enabledTypes]
@@ -67,7 +118,15 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
   );
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden" style={{ backgroundColor: 'var(--bg)', color: 'var(--fg-2)' }}>
+    <div
+      className="flex h-[100dvh] overflow-hidden"
+      style={{
+        backgroundColor: 'var(--bg)',
+        color: 'var(--fg-2)',
+        cursor: isDragging ? 'col-resize' : undefined,
+        userSelect: isDragging ? 'none' : undefined
+      }}
+    >
       {/* 데스크탑 좌측 사이드바 */}
       <aside
         className="hidden md:block md:w-72 flex-shrink-0 overflow-y-auto"
@@ -138,12 +197,31 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
         </div>
       </main>
 
-      {/* 데스크탑 우측 NodePanel */}
-      <aside
-        className="hidden md:block md:w-96 flex-shrink-0 overflow-y-auto"
+      {/* 데스크탑 우측 리사이즈 핸들 (데스크탑 only) */}
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="우측 패널 폭 조절 (드래그) / 더블클릭하면 기본값 복원"
+        title="드래그로 폭 조절 / 더블클릭하면 기본값"
+        onMouseDown={handleDragStart}
+        onDoubleClick={handleDoubleClick}
+        className="hidden md:block flex-shrink-0 relative"
         style={{
-          backgroundColor: 'var(--surface-1)',
-          borderLeft: '1px solid var(--border-1)'
+          width: 4,
+          backgroundColor: isDragging ? 'var(--accent)' : 'var(--border-1)',
+          cursor: 'col-resize',
+          transition: isDragging ? undefined : 'background-color 150ms'
+        }}
+        onMouseEnter={(e) => { if (!isDragging) e.currentTarget.style.backgroundColor = 'var(--border-3)'; }}
+        onMouseLeave={(e) => { if (!isDragging) e.currentTarget.style.backgroundColor = 'var(--border-1)'; }}
+      />
+
+      {/* 데스크탑 우측 NodePanel (폭 조절 가능) */}
+      <aside
+        className="hidden md:block flex-shrink-0 overflow-y-auto"
+        style={{
+          width: panelWidth,
+          backgroundColor: 'var(--surface-1)'
         }}
       >
         {selected ? (
@@ -151,6 +229,9 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
         ) : (
           <div className="p-5 text-sm" style={{ color: 'var(--fg-5)' }}>
             노드를 클릭하면 본문이 표시됩니다.
+            <div className="mt-3 text-[11px]" style={{ color: 'var(--fg-6)' }}>
+              💡 좌측 경계를 드래그해 패널 폭을 조절할 수 있어요. 더블클릭으로 기본값 복원.
+            </div>
           </div>
         )}
       </aside>

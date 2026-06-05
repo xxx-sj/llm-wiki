@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import matter from 'gray-matter';
 import { remark } from 'remark';
+import remarkGfm from 'remark-gfm';
 import remarkHtml from 'remark-html';
 import fg from 'fast-glob';
 import type { NodeFrontmatter, Scope, EdgeType, Origin, Surface, GraphData, GraphNode, GraphEdge } from './schema.js';
@@ -46,7 +47,7 @@ export async function parseNode(absFilePath: string, wikiRoot: string): Promise<
   // 예: ['personal', 'semantic', 'sample.md'] → scope = 'personal'
   const scope = segments[0] as Scope;
 
-  const bodyHtml = String(await remark().use(remarkHtml).process(content));
+  const bodyHtml = String(await remark().use(remarkGfm).use(remarkHtml).process(content));
   const fingerprint = computeFingerprint(fm.title, bodyHtml);
 
   return {
