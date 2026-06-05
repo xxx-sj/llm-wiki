@@ -180,8 +180,8 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
         {sidebarContent}
       </aside>
 
-      {/* 메인 그래프 영역 */}
-      <main className="flex-1 relative min-w-0">
+      {/* 메인 그래프 영역 — overflow-hidden으로 canvas/노드 라벨이 영역 밖으로 못 나가게 */}
+      <main className="flex-1 relative min-w-0 overflow-hidden">
         <ForceGraphCanvas
           nodes={filtered.nodes}
           edges={filtered.edges}
@@ -227,7 +227,7 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
         title="드래그로 폭 조절 / 더블클릭하면 기본값"
         onMouseDown={handleDragStart}
         onDoubleClick={handleDoubleClick}
-        className="hidden md:flex flex-shrink-0 relative items-center justify-center group"
+        className="hidden md:flex flex-shrink-0 relative items-center justify-center group z-20"
         style={{
           width: 8,
           backgroundColor: isDragging ? 'var(--accent)' : 'var(--surface-2)',
@@ -250,13 +250,14 @@ export default function ClientGraphPage({ graph }: { graph: GraphData }) {
         />
       </div>
 
-      {/* 데스크탑 우측 NodePanel (폭 조절 가능) */}
+      {/* 데스크탑 우측 NodePanel (폭 조절 가능) — z-20으로 main 위 */}
       <aside
-        className="hidden md:block flex-shrink-0 overflow-y-auto overflow-x-hidden"
+        className="hidden md:block flex-shrink-0 overflow-y-auto overflow-x-hidden relative z-20"
         style={{
           width: panelWidth,
           maxWidth: panelWidth,
-          backgroundColor: 'var(--surface-1)'
+          backgroundColor: 'var(--surface-1)',
+          borderLeft: '1px solid var(--border-1)'
         }}
       >
         {selected ? (

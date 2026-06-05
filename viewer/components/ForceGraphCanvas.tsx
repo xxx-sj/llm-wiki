@@ -32,12 +32,24 @@ export default function ForceGraphCanvas({ nodes, edges, selectedId, chatCitedId
     function update() {
       if (containerRef.current) {
         const r = containerRef.current.getBoundingClientRect();
-        setSize({ w: r.width, h: r.height });
+        // 새 폭이 0보다 작으면 무시 (mount 이전 상태 등)
+        if (r.width > 0 && r.height > 0) {
+          setSize(prev => (prev.w === r.width && prev.h === r.height ? prev : { w: r.width, h: r.height }));
+        }
       }
     }
     update();
     window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    // ResizeObserver — 부모(main)의 폭이 panel drag 등으로 변할 때 감지
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
+      ro = new ResizeObserver(update);
+      ro.observe(containerRef.current);
+    }
+    return () => {
+      window.removeEventListener('resize', update);
+      ro?.disconnect();
+    };
   }, []);
 
   // hover 노드의 인접 노드 id set 미리 계산
