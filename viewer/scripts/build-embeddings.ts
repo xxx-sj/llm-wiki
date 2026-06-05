@@ -104,7 +104,9 @@ async function main() {
   for (const n of graph.nodes) {
     const body = htmlToText(graph.contents[n.id] ?? '');
     const text = `${n.title}\n\n${body}`.slice(0, MAX_CHARS_PER_NODE);
-    const hash = hashText(text);
+    // n.fingerprint는 build-graph가 (title + plain text body)로 계산한 SHA-256
+    // 본인 캐시 hash와 동일하게 작동하지만 두 곳에서 다시 계산하지 않도록 통합
+    const hash = n.fingerprint ?? hashText(text);
 
     const cachedHash = cache?.hashes?.[n.id];
     const cachedVec = cache?.nodes?.[n.id];

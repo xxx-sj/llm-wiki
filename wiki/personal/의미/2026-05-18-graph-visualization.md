@@ -3,6 +3,7 @@ id: 2026-05-18-graph-visualization
 title: Force-directed Graph 시각화
 node_type: 의미
 memory_type: world_fact
+origin: external
 created: 2026-05-18
 last_reviewed: 2026-05-18
 confidence: high
@@ -11,6 +12,7 @@ sources:
 links:
   - to: 2026-05-18-llm-wiki-pattern
     type: 확장
+    note: wiki 패턴에 시각화 레이어를 더해 확장
   - to: 2026-05-18-knowledge-management
     type: 주제태그
 tags: [시각화, 그래프]

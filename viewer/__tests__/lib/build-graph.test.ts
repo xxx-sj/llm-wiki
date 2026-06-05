@@ -20,6 +20,16 @@ describe('parseNode', () => {
     expect(result.scope).toBe('personal');
     expect(result.links).toEqual([{ to: 'another-node', type: '전제' }]);
     expect(result.bodyHtml).toContain('본문 내용');
+    // 새 필드 — origin default 'self', fingerprint 64자 hex
+    expect(result.origin).toBe('self');
+    expect(result.fingerprint).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('preserves edge note when present in frontmatter links', async () => {
+    // sample.md의 links에는 note가 없으므로 undefined여야 함
+    const filePath = path.join(FIXTURES, 'wiki/personal/semantic/sample.md');
+    const result = await parseNode(filePath, path.join(FIXTURES, 'wiki'));
+    expect(result.links[0].note).toBeUndefined();
   });
 
   it('extracts scope=work from wiki/work/ path', async () => {
@@ -59,11 +69,13 @@ describe('buildGraph', () => {
     const graph = await buildGraph(wikiRoot);
 
     expect(graph.edges).toHaveLength(1);
-    expect(graph.edges[0]).toEqual({
+    expect(graph.edges[0]).toMatchObject({
       source: 'sample-personal-node',
       target: 'another-node',
       type: '전제'
     });
+    // note 없는 엣지는 note 필드도 없음
+    expect(graph.edges[0].note).toBeUndefined();
 
     const sample = graph.nodes.find(n => n.id === 'sample-personal-node')!;
     const another = graph.nodes.find(n => n.id === 'another-node')!;

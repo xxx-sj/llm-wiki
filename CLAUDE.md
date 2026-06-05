@@ -10,7 +10,7 @@
 - 이유: wiki는 Next.js viewer가 렌더링하고, raw/는 viewer가 직접 참조하지 않으며, docs/는 사람이 마크다운으로 직접 읽음.
 - 예외: 향후 `resume/memory/docs/` 안에 외부 공유용 정적 페이지를 만들 필요가 생기면 그때 개별적으로 변환.
 
-## 노드 타입 (6)
+## 노드 타입 (7)
 
 | 타입 | 정의 |
 |---|---|
@@ -20,8 +20,9 @@
 | 사건 | 특정 시점의 일/경험 |
 | 주장 | 누군가의 의견/논증 |
 | 주제 | 다른 노드를 묶는 카테고리 |
+| 엔티티 | 사람·회사·이벤트 등 named entity (다른 노드가 `언급` 엣지로 가리킴) |
 
-## 엣지 타입 (9)
+## 엣지 타입 (10)
 
 | 타입 | 의미 |
 |---|---|
@@ -34,6 +35,7 @@
 | 촉발 | A가 B 생각의 계기 |
 | 주제태그 | A가 주제 B에 속함 |
 | 전제 | A가 B의 전제 조건 |
+| 언급 | A가 엔티티 B를 언급 (사람·회사·이벤트) |
 
 엣지는 directed. 양방향이면 두 엣지로 표현.
 
@@ -43,8 +45,10 @@
 ---
 id: 2026-05-18-some-slug                # ASCII만, 파일명 - .md
 title: 한글 제목 가능
-node_type: 의미                         # 6종 중 하나
+node_type: 의미                         # 7종 중 하나 (의미·통찰·절차·사건·주장·주제·엔티티)
 memory_type: mental_model               # mental_model | observation | world_fact | experience
+origin: self                            # self | external | synthesized (default: self)
+meaning_version: 1                      # optional, 본문 의미가 변할 때 사용자가 +1
 created: 2026-05-18
 last_reviewed: 2026-05-18
 confidence: high                        # high | medium | low (optional)
@@ -54,9 +58,55 @@ sources:                                # optional
 links:                                  # optional, forward-only
   - to: 다른-노드-id
     type: 전제
+    note: 이게 왜 전제인지 한 줄 설명    # optional, RAG 답변 시 맥락 보존
 tags: [자유태그]                        # optional
 ---
 ```
+
+### origin 축 — 인식론적 출처
+
+| 값 | 의미 | 예 |
+|---|---|---|
+| `self` | 본인이 직접 작성한 1차 통찰/주장 (default) | 본인 통찰, 직접 만든 절차 |
+| `external` | 외부 글/대화/책 등 인용한 것 | Karpathy 글 요약, 인터뷰 발언 |
+| `synthesized` | external 위에 본인이 추론/종합한 것 | Karpathy + 본인 관점 합친 새 주장 |
+
+→ RAG 답변 시 "당신의 통찰" vs "X가 한 말"을 정확히 구분. 외부 인용이 본인 어조로 흘러가지 않게.
+
+### claim_fingerprint (자동)
+
+`build-graph`가 `(title + plain text body)` SHA-256을 빌드 시 자동 계산해 `graph.json`의 노드에 `fingerprint` 필드로 출력. frontmatter에 직접 적지 않음. 임베딩 캐시 키 + 변경 감지에 사용.
+
+### meaning_version (수동)
+
+노드의 **의미가 의도적으로 바뀔 때만** 사용자가 +1. 단순 오타/문장 다듬기는 그대로 유지(`meaning_version` 안 올림). 의미 변경 시:
+
+1. 본인이 frontmatter `meaning_version: N+1`로 증가
+2. 다른 노드가 이 노드를 `links: [{to_meaning_version: N}]`로 인용했으면 → 빌드 시 stale 감지 (Phase 3 lint)
+3. 인용 노드가 새 의미와 맞는지 사용자가 검토 후 `to_meaning_version: N+1`로 갱신
+
+이건 hash와 다름:
+- `fingerprint`(자동): **글자 변화** 감지 → 임베딩 재계산
+- `meaning_version`(수동): **의미 변화** 선언 → 인용한 노드들 stale 표시
+
+### 엔티티 노드 + 언급 엣지
+
+사람·회사·이벤트 같은 named entity는 `엔티티` node_type으로 둠:
+```yaml
+node_type: 엔티티
+title: 카카오
+origin: external                    # 외부 실재 (본인 창작 X)
+```
+
+다른 노드에서 그 엔티티를 가리키는 건 `언급` 엣지:
+```yaml
+links:
+  - to: 2026-05-18-kakao
+    type: 언급
+    note: 카카오 발표 인용
+```
+
+→ "카카오 관련 노드 모두" 같은 쿼리 가능. 엔티티 노드가 hub 역할.
 
 ### 진실 출처 (Source of Truth)
 

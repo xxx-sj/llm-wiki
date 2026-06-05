@@ -3,6 +3,7 @@ id: 2026-05-18-llm-wiki-pattern
 title: LLM Wiki 패턴
 node_type: 의미
 memory_type: mental_model
+origin: external
 created: 2026-05-18
 last_reviewed: 2026-05-18
 confidence: high
@@ -11,6 +12,7 @@ sources:
 links:
   - to: 2026-05-18-vercel-static-deploy
     type: 전제
+    note: wiki 패턴 이해가 정적 배포 절차의 전제
   - to: 2026-05-18-knowledge-management
     type: 주제태그
 tags: [지식관리, AI]

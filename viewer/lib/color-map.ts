@@ -39,7 +39,8 @@ export const NODE_COLOR: Record<NodeType, string> = {
   '절차':   FG['2'],
   '사건':   FG['2'],
   '주장':   ACCENT.main, // 강조
-  '주제':   FG['2']
+  '주제':   FG['2'],
+  '엔티티': FG['3']        // 사람/회사/이벤트 — 살짝 dim한 흰색
 };
 
 export const NODE_COLOR_DISABLED = FG['5'];
@@ -54,7 +55,8 @@ export const EDGE_COLOR: Record<EdgeType, string> = {
   '유사':     BORDER['3'],
   '촉발':     BORDER['3'],
   '주제태그': BORDER['3'],
-  '전제':     BORDER['3']
+  '전제':     BORDER['3'],
+  '언급':     BORDER['3']    // entity reference
 };
 
 // 점선 패턴 (유사·주제태그 — 약한/메타 관계)
@@ -67,7 +69,8 @@ export const EDGE_DASH: Record<EdgeType, number[] | null> = {
   '유사':     [3, 3],
   '촉발':     null,
   '주제태그': [3, 3],
-  '전제':     null
+  '전제':     null,
+  '언급':     [3, 3]     // entity reference — 약한 관계 점선
 };
 
 // 사이드바 dot 색 (NODE_COLOR와 동일)

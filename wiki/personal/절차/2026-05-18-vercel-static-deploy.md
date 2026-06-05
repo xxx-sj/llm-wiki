@@ -3,6 +3,7 @@ id: 2026-05-18-vercel-static-deploy
 title: Next.js SSG를 Vercel에 배포하기
 node_type: 절차
 memory_type: experience
+origin: self
 created: 2026-05-18
 last_reviewed: 2026-05-18
 confidence: medium

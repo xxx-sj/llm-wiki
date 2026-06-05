@@ -1,24 +1,38 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import matter from 'gray-matter';
 import { remark } from 'remark';
 import remarkHtml from 'remark-html';
 import fg from 'fast-glob';
-import type { NodeFrontmatter, Scope, EdgeType, GraphData, GraphNode, GraphEdge } from './schema.js';
+import type { NodeFrontmatter, Scope, EdgeType, Origin, GraphData, GraphNode, GraphEdge } from './schema.js';
 
 export interface ParsedNode {
   id: string;
   title: string;
   node_type: NodeFrontmatter['node_type'];
   memory_type: NodeFrontmatter['memory_type'];
+  origin: Origin;
+  meaning_version: number;
   scope: Scope;
   created: string;
   last_reviewed: string;
   confidence?: NodeFrontmatter['confidence'];
   sources?: string[];
-  links: Array<{ to: string; type: EdgeType }>;
+  links: Array<{ to: string; type: EdgeType; note?: string; to_meaning_version?: number }>;
   tags?: string[];
   bodyHtml: string;
+  /** SHA-256 of (title + plain text body). 변경 감지 + 캐시 키. */
+  fingerprint: string;
+}
+
+function htmlToText(html: string): string {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function computeFingerprint(title: string, bodyHtml: string): string {
+  const text = `${title}\n\n${htmlToText(bodyHtml)}`;
+  return crypto.createHash('sha256').update(text).digest('hex');
 }
 
 export async function parseNode(absFilePath: string, wikiRoot: string): Promise<ParsedNode> {
@@ -32,12 +46,15 @@ export async function parseNode(absFilePath: string, wikiRoot: string): Promise<
   const scope = segments[0] as Scope;
 
   const bodyHtml = String(await remark().use(remarkHtml).process(content));
+  const fingerprint = computeFingerprint(fm.title, bodyHtml);
 
   return {
     id: fm.id,
     title: fm.title,
     node_type: fm.node_type,
     memory_type: fm.memory_type,
+    origin: fm.origin ?? 'self',
+    meaning_version: fm.meaning_version ?? 1,
     scope,
     created: fm.created,
     last_reviewed: fm.last_reviewed,
@@ -45,7 +62,8 @@ export async function parseNode(absFilePath: string, wikiRoot: string): Promise<
     sources: fm.sources,
     links: fm.links ?? [],
     tags: fm.tags,
-    bodyHtml
+    bodyHtml,
+    fingerprint
   };
 }
 
@@ -70,7 +88,10 @@ export async function buildGraph(wikiRoot: string): Promise<GraphData> {
   const edges: GraphEdge[] = [];
   for (const p of parsed) {
     for (const link of p.links) {
-      edges.push({ source: p.id, target: link.to, type: link.type });
+      const edge: GraphEdge = { source: p.id, target: link.to, type: link.type };
+      if (link.note) edge.note = link.note;
+      if (link.to_meaning_version !== undefined) edge.to_meaning_version = link.to_meaning_version;
+      edges.push(edge);
     }
   }
 
@@ -86,12 +107,15 @@ export async function buildGraph(wikiRoot: string): Promise<GraphData> {
     title: p.title,
     node_type: p.node_type,
     memory_type: p.memory_type,
+    origin: p.origin,
+    meaning_version: p.meaning_version,
     scope: p.scope,
     in_degree: inDegree.get(p.id) ?? 0,
     out_degree: outDegree.get(p.id) ?? 0,
     last_reviewed: p.last_reviewed,
     confidence: p.confidence,
-    tags: p.tags
+    tags: p.tags,
+    fingerprint: p.fingerprint
   }));
 
   const contents: Record<string, string> = {};

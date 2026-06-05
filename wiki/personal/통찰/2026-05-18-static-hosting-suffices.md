@@ -3,6 +3,7 @@ id: 2026-05-18-static-hosting-suffices
 title: 정적 호스팅으로 충분하다
 node_type: 통찰
 memory_type: mental_model
+origin: self
 created: 2026-05-18
 last_reviewed: 2026-05-18
 confidence: high
@@ -10,6 +11,7 @@ sources: []
 links:
   - to: 2026-05-18-llm-wiki-pattern
     type: 지지
+    note: wiki를 정적으로 빌드해도 검색/그래프 모두 동작함을 뒷받침
   - to: 2026-05-18-knowledge-management
     type: 주제태그
 tags: [아키텍처, 비용]

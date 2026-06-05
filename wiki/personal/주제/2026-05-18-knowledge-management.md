@@ -3,6 +3,7 @@ id: 2026-05-18-knowledge-management
 title: 지식 관리 시스템
 node_type: 주제
 memory_type: mental_model
+origin: self
 created: 2026-05-18
 last_reviewed: 2026-05-18
 confidence: high

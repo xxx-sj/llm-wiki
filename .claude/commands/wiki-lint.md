@@ -12,6 +12,8 @@
 6. **타입 불일치**: 폴더 경로의 node_type과 frontmatter `node_type`이 다른 노드
 7. **비전형 memory_type**: node_type ↔ memory_type 권장 매핑(CLAUDE.md)에서 벗어난 노드 (warning)
 8. **id-파일명 불일치**: frontmatter `id`와 파일명(`.md` 제거)이 다른 노드
+9. **origin 누락**: frontmatter에 `origin` 필드 없는 노드 (default: self로 기록 권장)
+10. **외부 인용 엣지 누락** (voice firewall 약식): `origin: synthesized`인 노드인데 `external` 노드로 향하는 forward 엣지가 0개면 warning
 
 ## 출력 형식
 
